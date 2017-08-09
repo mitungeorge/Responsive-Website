@@ -1,0 +1,293 @@
+
+	<!DOCTYPE html>
+	<html lang="en" ng-app="Facebook">
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Facebook Graph Search</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="styles.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>	
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-animate.js"></script>
+		<script src="http://connect.facebook.net/en_US/all.js"></script>
+		<script src="fbscript.js"></script>
+	</head>
+
+	<body ng-controller="headercontroller">
+		
+			<div class="row row-fixed-top header">
+				<div class="col-md-12">
+					<form class="form-horizontal">
+					<div class="form-group">
+					<label class="col-md-3 control-label" id="labfb"><h4>FB Search</h4></label>
+		    		<div class="input-group col-lg-6">
+		      			<input type="text" class="form-control col-lg-2" placeholder="type something..." ng-model="keyword" id="inputkw" required>
+		      			<span class="input-group-btn" >
+		        		<button type="submit" class="btn btn-info btn-space blue hbut col-lg-12" ng-click="postData()">
+	      				<span class="glyphicon glyphicon-search "></span>
+	    				</button>
+	    				</span>
+	    				<span>
+	    				<button type="button" class="btn btn-info btn-space white hbut" ng-click="clearData()">Clear</button>
+	    			</span>
+		    		</div>
+		    		</div>
+		    		</form>
+		  		</div>	
+			</div>
+		
+			<div class="row">
+			<nav class="navbar navbar-inverse">
+					<ul class="nav navbar-nav nav-tabs nav-justified" data-tabs="tabs" id="checktab">
+						<li class="active" id="user" data-toggle="tab" role="tab" ng-click="loadData('user')"><a href="">Users</a></li>
+      					<li><a href="" id="page" data-toggle="tab" role="tab" ng-click="loadData('page')">Pages</a></li>
+      					<li><a href="" id="event" data-toggle="tab" role="tab" ng-click="loadData('event')">Events</a></li>
+      					<li><a href="" id="place" data-toggle="tab" role="tab" ng-click="placeData('place')">Places</a></li>
+      					<li><a href="" id="group" data-toggle="tab" role="tab" ng-click="loadData('group')">Groups</a></li>
+      					<li><a href="" id="favorite" data-toggle="tab" role="tab" ng-click="loadFavorites()">Favorites</a></li>
+      				</ul>
+      		</nav>
+      	</div>	
+
+<div id="clear">      			
+      			<div class="container progb" id="pbar" style="display:none">
+					    		<div class="progress progress-striped active">
+					        	<div class="progress-bar progress-bar-animated" role="progressbar" style="width: 60%;"></div>
+					    		</div>
+							</div>
+
+
+      			
+
+     				<div class="animate-hide" ng-hide="myVar">
+
+
+					      	<div class="tabledata" id="utable" style="display:none" >
+							<div id="maintable" style="display:none">
+					      	<table class="table table-hover table-responsive table-condensed table-nonfluid maintable col-lg-12">
+								<thead>
+								    <tr>
+								      <th class="col-lg-1">#</th>
+								      <th class="col-lg-3">Profile photo</th>
+								      <th class="col-lg-4">Name</th>
+								      <th class="col-lg-2">Favorite</th>
+								      <th class="col-lg-2">Details</th>
+								    </tr>
+								 </thead>
+								 <tbody>
+								 <tr ng-repeat="x in users">
+								 <td class="valign col-lg-1"></td>
+								 <td><a href="https://graph.facebook.com/{{x.id}}/picture?type=large&redirect=true&width=700&height=700&access_token=EAAZAbRExoQZCwBAE7Fn7c8fDvehvZB1YDDNul15VcHwwFTnxZBocs2S54MkDuVM82mKqYQokwZClLQrzrGuZBTjwxeIyuPtSTwzZBdjX4LwdFZAYygbIaaG2w9rGYGhoqMJz4QM9zxdehzBaaZCvHbWbKNQmsDHNrldAZD" target="_blank"><img  height="50px" width="50px" src="{{x.picture.data.url}}" class="img-circle"></a></td>
+								 <td>{{x.name}}</td>
+								 <td>
+								 
+								<button type="button" class="btn btn-default btn-sm" id="favbtn" ng-click="addFavorite(x)"> 
+
+					          		<span ng-if="!isFavorite(x.id)" class="glyphicon glyphicon-star-empty favicon"></span>
+					          		<span ng-if="isFavorite(x.id)" class="glyphicon glyphicon-star favicon" style="color:gold"></span>
+					        		</button>
+
+								 </td>
+								 <td>
+								 	
+								 	<button type="button" class="btn btn-default btn-sm details" ng-click="viewDetails(x.id); toggle()">
+					          		<span class="glyphicon glyphicon-chevron-right"></span>
+					        		</button>
+					        		</td>
+								 </tr>
+								 </tbody>
+							</table>
+								<div class="col-md-12 text-center vspace">
+									<button type="button" id="previd" class="btn btn-default prev" style="display:none" ng-click="prevPage(prevp)">Previous</button>
+									<button type="button" id="nextid" class="btn btn-default next" style="display:none" ng-click="nextPage(nextp)">Next</button>
+								</div>	
+							</div>
+							</div>
+
+
+
+							<div class="ftabledata" id="ftable" style="display:none" >
+							<div id="favtable" style="display:none">
+					      	<table class="table table-hover table-responsive table-nonfluid table-condensed favtable col-lg-12">
+								<thead>
+								    <tr>
+								      <th class="col-md-1">#</th>
+								      <th class="col-md-3">Profile photo</th>
+								      <th class="col-md-3">Name</th>
+								      <th class="col-md-2">Type</th>
+								      <th class="col-md-2">Favorite</th>
+								      <th class="col-md-1">Details</th>
+								    </tr>
+								 </thead>
+								 <tbody>
+								 <tr ng-repeat="i in favorites">
+								 <td >{{$index+1}}</td>
+								 <td><img height="50px" width="50px" src="{{i.picture.data.url}}" class="img-circle"></td>
+								 <td>{{i.name}}</td>
+								 <td>{{i.type}}</td>
+								 <td>
+								 
+								<button type="button" class="btn btn-default btn-sm" id="favbtn" ng-click="delFavorite(i.id)"> 
+					          		<span class="glyphicon glyphicon-trash"></span>
+					        		</button>
+
+								 </td>
+								 <td>
+								 	
+								 	<button type="button" class="btn btn-default btn-sm details" ng-click="viewDetails(i.id); toggle()">
+					          		<span class="glyphicon glyphicon-chevron-right"></span>
+					        		</button>
+					        		</td>
+								 </tr>
+								 </tbody>
+							</table>
+							</div>
+							</div>
+
+
+
+
+
+
+					</div>
+
+					<div class="animate-hide" ng-hide="!myVar">
+
+								<div id="detailshead">
+
+								<button type="button" id="previd" class="btn btn-default bprev" ng-click="showTable(); toggle()" >
+								<span class="glyphicon glyphicon-chevron-left"></span>Back
+								</button>
+
+
+								<button class="btn btn-default" style="float:right;margin-right: 17px;" ng-click="fbPost()">
+     							<img src="facebook.png" width="20px" height="15px" >
+								</button>
+
+								<button type="button" class="btn btn-default btn-sm" id="favbtn" style="float:right;margin-right: 14px;width: 43px;height: 34px;" ng-click="addFavoriteDetail(postid)" > 
+					          		<span ng-if="!isFavorite(postid)" class="glyphicon glyphicon-star-empty favicon"></span>
+					          		<span ng-if="isFavorite(postid)" class="glyphicon glyphicon-star favicon" style="color:gold"></span>
+					        	</button>
+
+
+								</div>	
+
+
+								<div class="col-lg-6 heigh" id="album">
+								<div class="panel panel-default panel-fluid" >
+								<div class="panel-heading">Albums</div>
+								<div class="panel-body">
+
+									
+									
+									<div class="albpos" id="apbar" style="display:none">
+					    			<div class="progress progress-striped active">
+					        		<div class="progress-bar progress-bar-animated" role="progressbar" style="width: 60%;"></div>
+					    			</div>
+							    	</div>
+							   	
+							   	<div class="alpopanel" id="apanel" style="display:none;"> 
+
+
+									<div ng-if="alength==true">
+
+													<div class="panel-group" id="accordion">
+												    <div class="panel panel-default">
+												      <div class="panel-heading">
+												       
+												          <a data-toggle="collapse" data-parent="#accordion" href="#collapse0">{{albums[0].name}}</a>
+												        
+												      </div>
+												      <div id="collapse0" class="panel-collapse collapse in">
+												        <div class="panel-body">
+												        	<div ng-repeat="photo in albums[0].photos.data">
+			                    								<img class="img-responsive" src="https://graph.facebook.com/v2.8/{{photo.id}}/picture?access_token=EAAZAbRExoQZCwBAE7Fn7c8fDvehvZB1YDDNul15VcHwwFTnxZBocs2S54MkDuVM82mKqYQokwZClLQrzrGuZBTjwxeIyuPtSTwzZBdjX4LwdFZAYygbIaaG2w9rGYGhoqMJz4QM9zxdehzBaaZCvHbWbKNQmsDHNrldAZD" style="border-radius: 15px;">	
+			                    								<br><br>
+			                    								</div>	
+												        </div>
+												      </div>
+												    </div>
+												    <div ng-repeat="album in albums" ng-if="$index > 0" class="panel panel-default">
+												      <div class="panel-heading">
+												    
+												          <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{$index}}">{{album.name}}</a>
+												  
+												      </div>
+												      <div id="collapse{{$index}}" class="panel-collapse collapse">
+												        <div class="panel-body">
+												        	<div ng-repeat="photo in album.photos.data">
+			                    								<img class="img-responsive" src="https://graph.facebook.com/v2.8/{{photo.id}}/picture?access_token=EAAZAbRExoQZCwBAE7Fn7c8fDvehvZB1YDDNul15VcHwwFTnxZBocs2S54MkDuVM82mKqYQokwZClLQrzrGuZBTjwxeIyuPtSTwzZBdjX4LwdFZAYygbIaaG2w9rGYGhoqMJz4QM9zxdehzBaaZCvHbWbKNQmsDHNrldAZD" style="border-radius: 15px;">	
+			                    								<br><br>
+			                    							</div>
+												        </div>
+												      </div>
+												    </div>
+												  </div> 
+
+									</div>
+									<div ng-if="alength==false">
+													<div class="panel panel-default">
+            										<div class="panel-heading" style="background-color:#f5f5d3;">No data found.
+            										</div>
+            										</div>
+									</div>			
+								</div>
+								</div>
+								</div>
+								</div>
+
+
+								<div class="col-lg-6 heigh" id="posts">
+								<div class="panel panel-default panel-fluid">
+								<div class="panel-heading">Posts</div>
+								<div class="panel-body">
+
+										<div class="albpos" id="ppbar" style="display:none">
+					    				<div class="progress progress-striped active">
+					        			<div class="progress-bar progress-bar-animated" role="progressbar" style="width: 60%;"></div>
+					    				</div>
+							    		</div>
+
+							    <div class="alpopanel" id="ppanel" style="display:none;">
+
+							    		<div ng-if="plength==true">
+
+							    				<div ng-repeat="post in posts">
+							    					<div class="panel panel-default">
+							    					<div class="panel-body">
+							    					<img class="img-responsive" src="https://graph.facebook.com/v2.8/{{postid}}/picture?access_token=EAAZAbRExoQZCwBAE7Fn7c8fDvehvZB1YDDNul15VcHwwFTnxZBocs2S54MkDuVM82mKqYQokwZClLQrzrGuZBTjwxeIyuPtSTwzZBdjX4LwdFZAYygbIaaG2w9rGYGhoqMJz4QM9zxdehzBaaZCvHbWbKNQmsDHNrldAZD">
+							    					<p class="postname col-lg-12"><strong>{{pname}}</strong></p>
+							    					<p class="posttime col-lg-12" style="color:grey">{{post.created_time | date:'yyyy-MM-dd hh:mm:ss'}}</p>
+							    					<p class="postmsg col-lg-12">{{post.message}}</p>
+							    					</div>
+							    					</div>
+							    				</div>	
+							    		</div>
+							    		<div ng-if="plength==false">
+													<div class="panel panel-default">
+            										<div class="panel-heading" style="background-color:#f5f5d3;">No data found.
+            										</div>
+            										</div>
+										</div>		
+
+								</div>
+								</div>
+								</div>
+								</div>
+
+					</div>			
+
+</div>				
+	
+
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-sanitize.js"></script>
+
+
+</body>
+</html>      			
